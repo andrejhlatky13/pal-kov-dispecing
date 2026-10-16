@@ -6,6 +6,7 @@
 <link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:#F2F4F7;color:#0B1F45}
 header{position:relative;overflow:hidden;background:linear-gradient(180deg,#fff 0%,#eef2f7 100%);color:#0B1F45;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:5px solid #1E4FA3}
@@ -52,44 +53,47 @@ const ST={nova:'Nová',prebieha:'Prebieha',hotovo:'Hotovo'};
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const now=()=>new Date().toTimeString().slice(0,5);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const KEY='aha_db_v2';
-function emptyTask(t=''){return{text:t,weight:'',saleNote:'',placed:'',removed:'',from:'',to:'',status:'nova',msgs:[]}}
-function seed(){const d=today();
- const users=[{id:'disp1',name:'Radko Krupička',role:'dispecer'},{id:'v1',name:'Vlado Češko',role:'vodic',spz:'NR-123AB'},{id:'v2',name:'Daniel Gago',role:'vodic',spz:'NR-456CD'},{id:'v3',name:'Ivan Zigo',role:'vodic',spz:'TO-789EF'}];
- const T=(t,o={})=>Object.assign(emptyTask(t),o);
- const lists=[
- {id:'L1',date:d,driverId:'v1',spz:'NR-123AB',note:'Ráno najprv tankovať.',tasks:[T('Pristaviť kontajner 7 m³ – Stavebniny Šurany, Hlavná 12',{placed:'K-114',from:'06:40',to:'07:25',status:'hotovo',msgs:[{who:'v1',t:'07:24',text:'Kontajner pristavený pri bráne.'}]}),T('Odviezť plný kontajner – Kovovýroba Nitra, Priemyselná 5',{removed:'K-087',from:'07:50',status:'prebieha',msgs:[{who:'disp1',t:'07:10',text:'Volať p. Bielika 0905 000 111 pred príjazdom.'}]}),T('Výkup železa – p. Mráz, Vráble (rodinný dom)'),T('Pri predaji FK – vážiť prázdny aj plný, odvoz do huty')]},
- {id:'L2',date:d,driverId:'v2',spz:'NR-456CD',note:'',tasks:[T('Výmena kontajnera – Autoservis Zlaté Moravce',{placed:'K-201',removed:'K-155',from:'07:00',to:'07:45',weight:'2 340 kg',status:'hotovo'}),T('Zvoz hliníka – Okenné systémy Levice',{status:'prebieha',from:'08:10'}),T('Návrat na prevádzku – úvodná váha komplet')]},
- {id:'L3',date:d,driverId:'v3',spz:'TO-789EF',note:'Popoludní servis vozidla.',tasks:[T('Pristaviť 2 kontajnery – Obec Ludanice (zberný dvor)'),T('Odvoz medi – Elektro Topoľčany')]}];
- const pos={v1:{lat:48.3069,lng:18.0864,t:'07:52'},v2:{lat:48.2,lng:18.6,t:'08:12'},v3:{lat:48.56,lng:18.17,t:'06:55'}};
- return{users,lists,pos};}
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||seed();
-if(!db.lists.some(l=>l.date===today()))db.lists.filter(l=>/^L[123]$/.test(l.id)).forEach(l=>l.date=today());
-const save=()=>localStorage.setItem(KEY,JSON.stringify(db));save();
+const SB_URL='https://yrrjufilzsepoqoitwed.supabase.co',SB_KEY='sb_publishable_IlXIXhi7tw-2FcN8eQQCjA_2BlV1pOS';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const DEMO=[{name:'Radko Krupička',email:'radko.krupicka@pal-kov.local',pw:'dispecer',role:'Dispečer'},{name:'Vlado Češko',email:'vlado.cesko@pal-kov.local',pw:'vodic',role:'Vodič NR-123AB'},{name:'Daniel Gago',email:'daniel.gago@pal-kov.local',pw:'vodic',role:'Vodič NR-456CD'},{name:'Ivan Zigo',email:'ivan.zigo@pal-kov.local',pw:'vodic',role:'Vodič TO-789EF'}];
+let db={users:[],lists:[],pos:{}};
 let S=JSON.parse(sessionStorage.getItem('aha_s')||'{}');S.view=S.view||'login';
 const go=v=>{S.view=v;sessionStorage.setItem('aha_s',JSON.stringify(S));render()};
 const user=id=>db.users.find(u=>u.id===id)||{name:'?'};
 const app=document.getElementById('app');
-function render(){document.body.className=S.view==='vodic'?'drv':'';({login:vLogin,dispecer:vDisp,vodic:vDrv,report:vRep})[S.view]()}
-function logo(sec){return`<div class="logo"><div class="c">PAL-KOV &amp; A.H.METAL</div><div class="meta"><b>Since 1994</b><br>www.kovosrotdca.sk</div><span class="sec">${sec}</span></div>`}
-function hdr(extra=''){const u=user(S.uid);return`<header>${logo(S.view==='vodic'?'Vodič':S.view==='report'?'Prehľad':'Dispečing')}${extra}<span class="who">${esc(u.name)}</span><button onclick="S.uid=null;go('login')">Odhlásiť</button></header>`}
-const PASS={disp1:'dispecer',v1:'vodic',v2:'vodic',v3:'vodic'};
+const hm=ts=>ts?new Date(ts).toTimeString().slice(0,5):'';
 const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
-function doLogin(e){e.preventDefault();const n=norm(document.getElementById('ln').value),pw=document.getElementById('lp').value;
- const u=db.users.find(u=>norm(u.name)===n||norm(u.name.split(' ')[0])===n);
- if(!u||PASS[u.id]!==pw){document.getElementById('lerr').textContent='Nesprávne meno alebo heslo.';return}
- S.uid=u.id;go(u.role==='dispecer'?'dispecer':'vodic')}
+function toast(m,err){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:12px 18px;border-radius:10px;color:#fff;font-weight:700;z-index:9999;font-size:18px';document.body.appendChild(t)}t.style.background=err?'#B71C1C':'#1E4FA3';t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3000)}
+const chk=r=>{if(r&&r.error){console.error(r.error);toast('Chyba: '+r.error.message,1)}return r};
+function render(){document.body.className=S.view==='vodic'?'drv':'';({login:vLogin,dispecer:vDisp,vodic:vDrv,report:vRep,loading:()=>{app.innerHTML=`<header>${logo('…')}</header><div class="wrap"><div class="card"><h2>Načítavam…</h2></div></div>`}})[S.view]()}
+let pend=false;function safeRender(){const a=document.activeElement;if(a&&app.contains(a)&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=='file'){if(!pend){pend=true;a.addEventListener('blur',()=>{pend=false;setTimeout(render,50)},{once:true})}return}render()}
+async function load(){const d=S.view==='vodic'?today():(S.date||today());
+ const [u,s,p]=await Promise.all([sb.from('users').select('*'),sb.from('slips').select('*,tasks(*,messages(*))').eq('date',d),sb.from('positions').select('*')]);
+ if(chk(u).error||chk(s).error)return;
+ db.users=u.data.map(x=>({id:x.id,name:x.name,role:x.role,spz:x.spz})).sort((a,b)=>a.role.localeCompare(b.role)||a.name.localeCompare(b.name));
+ db.lists=s.data.sort((a,b)=>a.id-b.id).map(l=>({id:String(l.id),date:l.date,driverId:l.driver_id,spz:l.spz||'',note:l.note||'',tasks:l.tasks.sort((a,b)=>a.ord-b.ord).map(t=>({id:t.id,ord:t.ord,text:t.text||'',weight:t.weight||'',saleNote:t.sale_note||'',placed:t.placed||'',removed:t.removed||'',from:t.time_from||'',to:t.time_to||'',status:t.status,msgs:t.messages.sort((a,b)=>a.id-b.id).map(m=>({who:m.author_id,t:hm(m.created_at),text:m.text,photo:m.photo_url,audio:m.audio_url,gps:m.lat!=null?{lat:m.lat,lng:m.lng}:null}))}))}));
+ db.pos={};(p.data||[]).forEach(x=>db.pos[x.driver_id]={lat:x.lat,lng:x.lng,t:hm(x.ts)});
+ if(S.view!=='login'&&S.view!=='loading')safeRender()}
+let ch,tm;const sched=()=>{clearTimeout(tm);tm=setTimeout(load,250)};
+function subscribe(){if(ch)return;ch=sb.channel('aha-all');['slips','tasks','messages','positions'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},sched));ch.subscribe(st=>{S.rt=st;if(st==='SUBSCRIBED')sched()})}
+async function afterLogin(uid,view){S.uid=uid;S.view='loading';render();await sb.rpc('seed_demo',{d:today()});await load();const u=user(uid);subscribe();go(view&&view!=='login'&&view!=='loading'?(u.role==='vodic'?'vodic':view):(u.role==='dispecer'?'dispecer':'vodic'))}
+async function logout(){if(ch){sb.removeChannel(ch);ch=null}await sb.auth.signOut();S.uid=null;go('login')}
+function logo(sec){return`<div class="logo"><div class="c">PAL-KOV &amp; A.H.METAL</div><div class="meta"><b>Since 1994</b><br>www.kovosrotdca.sk</div><span class="sec">${sec}</span></div>`}
+function hdr(extra=''){const u=user(S.uid);return`<header>${logo(S.view==='vodic'?'Vodič':S.view==='report'?'Prehľad':'Dispečing')}${extra}<span class="who">${esc(u.name)}</span><button onclick="logout()">Odhlásiť</button></header>`}
+async function doLogin(e){e.preventDefault();const n=norm(ln.value);const d=DEMO.find(d=>norm(d.name)===n||norm(d.name.split(' ')[0])===n);
+ const email=d?d.email:n.replace(/\s+/g,'.')+'@pal-kov.local';lerr.textContent='Prihlasujem…';
+ const {data,error}=await sb.auth.signInWithPassword({email,password:lp.value+'-pk'});
+ if(error){lerr.textContent='Nesprávne meno alebo heslo.';return}afterLogin(data.user.id)}
 function vLogin(){app.innerHTML=`<header>${logo('Prihlásenie')}</header><div class="login card"><h2>Prihlásenie</h2>
 <form onsubmit="doLogin(event)"><label>Meno<input id="ln" autocomplete="username" style="font-size:20px;padding:10px;margin:4px 0 10px"></label>
 <label>Heslo<input id="lp" type="password" autocomplete="current-password" style="font-size:20px;padding:10px;margin:4px 0 10px"></label>
 <div id="lerr" style="color:#B71C1C;font-weight:700"></div><button class="pri" style="width:100%;font-size:20px;padding:12px">Prihlásiť</button></form>
-<h3 style="margin-top:22px">Demo prístupy</h3><table><tr><th>Meno</th><th>Heslo</th><th>Rola</th></tr>${db.users.map(u=>`<tr style="cursor:pointer" onclick="ln.value='${esc(u.name)}';lp.value='${PASS[u.id]}'"><td>${esc(u.name)}</td><td><code>${PASS[u.id]}</code></td><td>${u.role==='dispecer'?'Dispečer':'Vodič '+u.spz}</td></tr>`).join('')}</table>
-<p><small>Klik na riadok vyplní údaje. Dáta sa ukladajú len v tomto zariadení (demo).</small></p>
-<p><button onclick="if(confirm('Obnoviť demo dáta?')){localStorage.removeItem(KEY);db=seed();save();render()}">Obnoviť demo dáta</button></p></div>`}
+<h3 style="margin-top:22px">Demo prístupy</h3><table><tr><th>Meno</th><th>Heslo</th><th>Rola</th></tr>${DEMO.map(u=>`<tr style="cursor:pointer" onclick="ln.value='${esc(u.name)}';lp.value='${u.pw}'"><td>${esc(u.name)}</td><td><code>${u.pw}</code></td><td>${u.role}</td></tr>`).join('')}</table>
+<p><small>Klik na riadok vyplní údaje. Dáta sú zdieľané medzi zariadeniami a menia sa v reálnom čase.</small></p></div>`}
 // ---------- DISPEČER
 function vDisp(){if(!S.date)S.date=today();const ls=db.lists.filter(l=>l.date===S.date);if(!ls.find(l=>l.id===S.sel))S.sel=ls[0]?.id;
  const L=db.lists.find(l=>l.id===S.sel);
- app.innerHTML=hdr(`<button onclick="go('report')">Prehľad / export</button>`)+`<div class="wrap grid"><div><div class="card"><div class="row"><input type="date" value="${S.date}" onchange="S.date=this.value;render()" style="width:auto"><button class="pri" onclick="newList()">+ Nový lístok</button></div><h3>Lístky (${ls.length})</h3>${ls.map(l=>{const d=l.tasks.filter(t=>t.status==='hotovo').length;return`<div class="lst ${l.id===S.sel?'sel':''}" onclick="S.sel='${l.id}';render()"><b>${esc(user(l.driverId).name)}</b> · ${esc(l.spz)}<br><small>${d}/${l.tasks.length} hotových</small> ${l.tasks.map(t=>`<span class="badge s-${t.status}">${ST[t.status][0]}</span>`).join(' ')}</div>`}).join('')||'<i>Žiadne lístky</i>'}</div><div class="card"><h3>Poloha vodičov</h3><div id="map"></div><small>${db.users.filter(u=>u.role==='vodic').map(u=>`${esc(u.name)}: ${db.pos[u.id]?db.pos[u.id].t:'–'}`).join(' · ')}</small></div></div><div>${L?paper(L):'<div class="card">Vyberte alebo vytvorte lístok.</div>'}</div></div>`;
+ app.innerHTML=hdr(`<button onclick="go('report')">Prehľad / export</button>`)+`<div class="wrap grid"><div><div class="card"><div class="row"><input type="date" value="${S.date}" onchange="S.date=this.value;load()" style="width:auto"><button class="pri" onclick="newList()">+ Nový lístok</button></div><h3>Lístky (${ls.length}) <small title="Realtime" style="color:${S.rt==='SUBSCRIBED'?'#2e7d32':'#999'}">● live</small></h3>${ls.map(l=>{const d=l.tasks.filter(t=>t.status==='hotovo').length;return`<div class="lst ${l.id===S.sel?'sel':''}" onclick="S.sel='${l.id}';render()"><b>${esc(user(l.driverId).name)}</b> · ${esc(l.spz)}<br><small>${d}/${l.tasks.length} hotových</small> ${l.tasks.map(t=>`<span class="badge s-${t.status}">${ST[t.status][0]}</span>`).join(' ')}</div>`}).join('')||'<i>Žiadne lístky</i>'}</div><div class="card"><h3>Poloha vodičov</h3><div id="map"></div><small>${db.users.filter(u=>u.role==='vodic').map(u=>`${esc(u.name)}: ${db.pos[u.id]?db.pos[u.id].t:'–'}`).join(' · ')}</small></div></div><div>${L?paper(L):'<div class="card">Vyberte alebo vytvorte lístok.</div>'}</div></div>`;
  initMap();}
 function paper(L){const drv=db.users.filter(u=>u.role==='vodic');
  return`<div class="card paper"><div class="row" style="justify-content:space-between"><h2 style="margin:0">ZADÁVACÍ LÍSTOK</h2><div class="row noprint"><button onclick="window.print()">Tlačiť</button><button onclick="delList('${L.id}')">Zmazať</button></div></div>
@@ -106,14 +110,20 @@ function task(L,t,i){const f=(k,ph='')=>`<input value="${esc(t[k])}" placeholder
  <tr class="noprint"><td colspan="5"><details ${t.msgs.length?'open':''}><summary>Chat / poznámky k úlohe (${t.msgs.length})</summary>${chat(t)}<div class="row"><input id="m${i}" placeholder="Správa pre vodiča…" style="flex:1"><label class="row" style="cursor:pointer">📷<input type="file" accept="image/*" style="display:none" onchange="photo(this,'${L.id}',${i})"></label><button class="pri" onclick="send('${L.id}',${i},document.getElementById('m${i}').value)">Odoslať</button></div></details></td></tr></table>`}
 function chat(t){return`<div class="chat">${t.msgs.map(m=>`<div class="msg ${user(m.who).role==='dispecer'?'d':''}"><small>${esc(user(m.who).name)} · ${m.t}</small><br>${esc(m.text||'')}${m.photo?`<img src="${m.photo}">`:''}${m.audio?`<audio controls src="${m.audio}"></audio>`:''}${m.gps?`<a target="_blank" href="https://www.openstreetmap.org/?mlat=${m.gps.lat}&mlon=${m.gps.lng}#map=16/${m.gps.lat}/${m.gps.lng}">📍 poloha</a>`:''}</div>`).join('')||'<small>Zatiaľ bez správ</small>'}</div>`}
 const getL=id=>db.lists.find(l=>l.id===id);
-function upd(id,k,v){const L=getL(id);L[k]=v;if(k==='driverId'){const u=user(v);if(u.spz)L.spz=u.spz}save();render()}
-function updT(id,i,k,v){getL(id).tasks[i][k]=v;save();render()}
-function addTask(id){getL(id).tasks.push(emptyTask());save();render()}
-function newList(){const v=db.users.find(u=>u.role==='vodic');const L={id:'L'+Date.now(),date:S.date,driverId:v.id,spz:v.spz,note:'',tasks:[emptyTask()]};db.lists.push(L);S.sel=L.id;save();render()}
-function delList(id){if(confirm('Zmazať lístok?')){db.lists=db.lists.filter(l=>l.id!==id);save();render()}}
-function send(id,i,text,extra={}){if(!text&&!Object.keys(extra).length)return;getL(id).tasks[i].msgs.push(Object.assign({who:S.uid,t:now(),text},extra));save();render()}
-function photo(inp,id,i){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas'),s=Math.min(1,800/img.width);c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);send(id,i,'Fotka',{photo:c.toDataURL('image/jpeg',.7)})};img.src=r.result};r.readAsDataURL(f)}
-let map;function initMap(){const el=document.getElementById('map');if(!el)return;if(!window.L){el.innerHTML='<div style="padding:20px">Mapa (offline – Leaflet nedostupný)</div>';return}
+const TCOL={text:'text',weight:'weight',saleNote:'sale_note',placed:'placed',removed:'removed',from:'time_from',to:'time_to',status:'status'};
+async function upd(id,k,v){const L=getL(id);const o={};if(k==='driverId'){o.driver_id=v;const u=user(v);if(u.spz)o.spz=u.spz}else o[k]=v;L[k]=v;
+ chk(await sb.from('slips').update(o).eq('id',id));if(k==='date')S.date=v;load()}
+async function updT(id,i,k,v){const t=getL(id).tasks[i];t[k]=v;safeRender();chk(await sb.from('tasks').update({[TCOL[k]]:v,updated_at:new Date().toISOString()}).eq('id',t.id))}
+async function setT(id,i,o){const t=getL(id).tasks[i];const r={updated_at:new Date().toISOString()};for(const k in o){t[k]=o[k];r[TCOL[k]]=o[k]}render();chk(await sb.from('tasks').update(r).eq('id',t.id))}
+async function addTask(id){const L=getL(id);chk(await sb.from('tasks').insert({slip_id:+id,ord:L.tasks.length+1}));load()}
+async function newList(){const v=db.users.find(u=>u.role==='vodic');const r=chk(await sb.from('slips').insert({date:S.date,driver_id:v.id,spz:v.spz||''}).select().single());if(r.error)return;S.sel=String(r.data.id);chk(await sb.from('tasks').insert({slip_id:r.data.id,ord:1}));load()}
+async function delList(id){if(confirm('Zmazať lístok?')){chk(await sb.from('slips').delete().eq('id',id));load()}}
+async function send(id,i,text,extra={}){if(!text&&!Object.keys(extra).length)return;const t=getL(id).tasks[i];
+ chk(await sb.from('messages').insert({task_id:t.id,text:text||'',photo_url:extra.photo||null,audio_url:extra.audio||null,lat:extra.gps?.lat??null,lng:extra.gps?.lng??null}));load()}
+async function upload(blob,ext){const path=`${S.uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+ const r=chk(await sb.storage.from('media').upload(path,blob,{contentType:blob.type}));if(r.error)return null;return sb.storage.from('media').getPublicUrl(path).data.publicUrl}
+function photo(inp,id,i){const f=inp.files[0];if(!f)return;toast('Nahrávam fotku…');const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas'),s=Math.min(1,1280/img.width);c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(async b=>{const u=await upload(b,'jpg');if(u){await send(id,i,'Fotka',{photo:u});toast('Fotka odoslaná')}},'image/jpeg',.75)};img.src=r.result};r.readAsDataURL(f)}
+let map;function initMap(){if(map){map.remove();map=null}const el=document.getElementById('map');if(!el)return;if(!window.L){el.innerHTML='<div style="padding:20px">Mapa (offline – Leaflet nedostupný)</div>';return}
  map=L.map(el).setView([48.35,18.3],9);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
  Object.entries(db.pos).forEach(([id,p])=>{const l=db.lists.find(x=>x.driverId===id&&x.date===S.date);L.marker([p.lat,p.lng]).addTo(map).bindTooltip(`${user(id).name} (${l?l.spz:''}) ${p.t}`,{permanent:true})})}
 // ---------- VODIČ
@@ -130,26 +140,26 @@ function dTask(L,t,i){const inp=(k,lbl,m='text')=>`<label>${lbl}</label><input i
  <label class="noprint" style="display:block"><span style="display:block;text-align:center;border:1px solid #bbb;border-radius:14px;padding:18px;margin:12px 0 6px;background:#fff;cursor:pointer">📷 Pridať fotku</span><input type="file" accept="image/*" capture="environment" style="display:none" onchange="photo(this,'${L.id}',${i})"></label>
  <div class="big2"><button onclick="note('${L.id}',${i})">✉ Poznámka pre dispečera</button><button id="rec${i}" onclick="voice('${L.id}',${i})">🎤 Hlasová správa</button></div>
  ${t.msgs.length?chat(t):''}</div>`}
-function start(id,i){const t=getL(id).tasks[i];t.from=now();t.status='prebieha';save();render()}
-function done(id,i){const t=getL(id).tasks[i];t.to=now();t.status='hotovo';save();render()}
+function start(id,i){setT(id,i,{from:now(),status:'prebieha'})}
+function done(id,i){setT(id,i,{to:now(),status:'hotovo'})}
 function note(id,i){const x=prompt('Poznámka pre dispečera:');if(x)send(id,i,x)}
 let rec;function voice(id,i){const b=document.getElementById('rec'+i);
  if(rec&&rec.state==='recording'){rec.stop();return}
  if(!navigator.mediaDevices?.getUserMedia)return alert('Nahrávanie nie je podporované');
- navigator.mediaDevices.getUserMedia({audio:true}).then(st=>{const ch=[];rec=new MediaRecorder(st);rec.ondataavailable=e=>ch.push(e.data);rec.onstop=()=>{st.getTracks().forEach(t=>t.stop());const r=new FileReader();r.onload=()=>send(id,i,'Hlasová správa',{audio:r.result});r.readAsDataURL(new Blob(ch,{type:rec.mimeType}))};rec.start();b.textContent='⏹ STOP nahrávania';b.style.background='#c62828';b.style.color='#fff'}).catch(e=>alert('Mikrofón nedostupný: '+e.message))}
-function gps(id){if(!navigator.geolocation)return alert('GPS nedostupné');navigator.geolocation.getCurrentPosition(p=>{db.pos[S.uid]={lat:p.coords.latitude,lng:p.coords.longitude,t:now()};save();alert('Poloha odoslaná dispečerovi.')},e=>alert('Polohu sa nepodarilo zistiť: '+e.message),{enableHighAccuracy:true})}
+ navigator.mediaDevices.getUserMedia({audio:true}).then(st=>{const ch=[];rec=new MediaRecorder(st);rec.ondataavailable=e=>ch.push(e.data);rec.onstop=()=>{st.getTracks().forEach(t=>t.stop());const bl=new Blob(ch,{type:rec.mimeType});toast('Nahrávam hlasovú správu…');upload(bl,/mp4/.test(rec.mimeType)?'m4a':/ogg/.test(rec.mimeType)?'ogg':'webm').then(u=>{if(u){send(id,i,'Hlasová správa',{audio:u});toast('Hlasová správa odoslaná')}})};rec.start();b.textContent='⏹ STOP nahrávania';b.style.background='#c62828';b.style.color='#fff'}).catch(e=>alert('Mikrofón nedostupný: '+e.message))}
+function gps(id){if(!navigator.geolocation)return alert('GPS nedostupné');navigator.geolocation.getCurrentPosition(async p=>{const r=chk(await sb.from('positions').upsert({driver_id:S.uid,lat:p.coords.latitude,lng:p.coords.longitude,ts:new Date().toISOString()}));if(!r.error)toast('Poloha odoslaná dispečerovi')},e=>alert('Polohu sa nepodarilo zistiť: '+e.message),{enableHighAccuracy:true})}
 // ---------- REPORT
 function vRep(){if(!S.date)S.date=today();const ls=db.lists.filter(l=>l.date===S.date);
  const rows=ls.map(l=>{const t=l.tasks,d=t.filter(x=>x.status==='hotovo');const w=t.reduce((a,x)=>a+(parseFloat(String(x.weight).replace(/\s/g,'').replace(',','.'))||0),0);
   const fr=t.map(x=>x.from).filter(Boolean).sort()[0]||'',to=t.map(x=>x.to).filter(Boolean).sort().pop()||'';
   return{v:user(l.driverId).name,spz:l.spz,n:t.length,d:d.length,p:t.filter(x=>x.status==='prebieha').length,w,cont:t.map(x=>[x.placed&&'+'+x.placed,x.removed&&'−'+x.removed].filter(Boolean).join(' ')).filter(Boolean).join(', '),fr,to}});
  S.rows=rows;
- app.innerHTML=hdr(`<button onclick="go('dispecer')">← Dispečing</button>`)+`<div class="wrap"><div class="card"><div class="row noprint"><input type="date" value="${S.date}" onchange="S.date=this.value;render()" style="width:auto"><button class="pri" onclick="csv()">Export CSV</button><button onclick="window.print()">Tlačiť / PDF</button></div>
+ app.innerHTML=hdr(`<button onclick="go('dispecer')">← Dispečing</button>`)+`<div class="wrap"><div class="card"><div class="row noprint"><input type="date" value="${S.date}" onchange="S.date=this.value;load()" style="width:auto"><button class="pri" onclick="csv()">Export CSV</button><button onclick="window.print()">Tlačiť / PDF</button></div>
  <h2>Denný prehľad – ${new Date(S.date).toLocaleDateString('sk-SK')}</h2><table><tr><th>Vodič</th><th>ŠPZ</th><th>Úloh</th><th>Hotovo</th><th>Prebieha</th><th>Nakúpená hmotnosť (kg)</th><th>Kontajnery (+pristav. / −odvez.)</th><th>Od</th><th>Do</th></tr>
  ${rows.map(r=>`<tr><td>${esc(r.v)}</td><td>${esc(r.spz)}</td><td>${r.n}</td><td>${r.d}</td><td>${r.p}</td><td>${r.w||''}</td><td>${esc(r.cont)}</td><td>${r.fr}</td><td>${r.to}</td></tr>`).join('')}
  <tr><th colspan="2">Spolu</th><th>${rows.reduce((a,r)=>a+r.n,0)}</th><th>${rows.reduce((a,r)=>a+r.d,0)}</th><th>${rows.reduce((a,r)=>a+r.p,0)}</th><th>${rows.reduce((a,r)=>a+r.w,0)||''}</th><th colspan="3"></th></tr></table></div></div>`}
 function csv(){const h=['Dátum','Vodič','ŠPZ','Úloh','Hotovo','Prebieha','Hmotnosť kg','Kontajnery','Od','Do'];
  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';const s='\ufeff'+[h,...S.rows.map(r=>[S.date,r.v,r.spz,r.n,r.d,r.p,r.w,r.cont,r.fr,r.to])].map(r=>r.map(q).join(';')).join('\r\n');
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/csv'}));a.download='prehlad-'+S.date+'.csv';a.click()}
-render();
+(async()=>{const {data:{session}}=await sb.auth.getSession();if(session)afterLogin(session.user.id,S.view);else go('login')})();
 </script></body></html>
