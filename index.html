@@ -125,7 +125,7 @@ async function upload(blob,ext){const path=`${S.uid}/${Date.now()}-${Math.random
 function photo(inp,id,i){const f=inp.files[0];if(!f)return;toast('Nahrávam fotku…');const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas'),s=Math.min(1,1280/img.width);c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(async b=>{const u=await upload(b,'jpg');if(u){await send(id,i,'Fotka',{photo:u});toast('Fotka odoslaná')}},'image/jpeg',.75)};img.src=r.result};r.readAsDataURL(f)}
 let map;function initMap(){if(map){map.remove();map=null}const el=document.getElementById('map');if(!el)return;if(!window.L){el.innerHTML='<div style="padding:20px">Mapa (offline – Leaflet nedostupný)</div>';return}
  map=L.map(el).setView([48.35,18.3],9);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
- Object.entries(db.pos).forEach(([id,p])=>{const l=db.lists.find(x=>x.driverId===id&&x.date===S.date);L.marker([p.lat,p.lng]).addTo(map).bindTooltip(`${user(id).name} (${l?l.spz:''}) ${p.t}`,{permanent:true})})}
+ const pts=Object.values(db.pos).map(p=>[p.lat,p.lng]);if(pts.length)map.fitBounds(pts,{padding:[40,40],maxZoom:12});Object.entries(db.pos).forEach(([id,p])=>{const l=db.lists.find(x=>x.driverId===id&&x.date===S.date);L.marker([p.lat,p.lng]).addTo(map).bindTooltip(`${user(id).name} (${l?l.spz:''}) ${p.t}`,{permanent:true})})}
 // ---------- VODIČ
 function vDrv(){const L=db.lists.filter(l=>l.driverId===S.uid&&l.date===today())[0];
  app.innerHTML=hdr()+`<div class="wrap">${!L?'<div class="card"><h2>Na dnes nemáte lístok.</h2></div>':`
