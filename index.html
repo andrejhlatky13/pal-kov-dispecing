@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1E4FA3">
 <title>PAL-KOV &amp; A.H.METAL – Dispečing</title>
-<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg">
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,7 @@ header>*{position:relative;z-index:1}
 .logo .c{font-size:26px;font-weight:900;font-style:italic;letter-spacing:.5px;color:#0B1F45;line-height:1.1;border-bottom:3px solid #1E90E0}
 .logo .meta{font-size:12px;color:#3A4A66;border-left:2px solid #C9CFD8;padding-left:12px}.logo .meta b{font-style:italic;font-size:14px;color:#1E4FA3}
 .logo .sec{font-size:15px;font-weight:700;color:#0B1F45;background:#E6EEF9;border:1px solid #BFD0EA;border-radius:6px;padding:2px 8px}
-.who{color:#fff;font-weight:700;background:#0B1F45;border-radius:6px;padding:4px 10px}.logo .c{white-space:nowrap}
+.who{color:#fff;font-weight:700;background:#0B1F45;border-radius:6px;padding:4px 10px}.logo .c{white-space:nowrap}.logo img.lg{height:58px;width:58px;flex:none}@media(max-width:600px){.logo img.lg{height:44px;width:44px}}
 header button{background:#fff;color:#0B1F45;border:2px solid #0B1F45;font-weight:700}header button:hover{background:#E6EEF9}
 button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid #9AA5B4;background:#fff;color:#0B1F45;padding:6px 12px}
 button.pri{background:#1E4FA3;color:#fff;border-color:#1E4FA3}button.ok{background:#2e7d32;color:#fff;border-color:#2e7d32}
@@ -44,18 +44,24 @@ table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:5p
 .drv .badge{font-size:22px;padding:4px 14px}.drv .tnum{font-size:34px;font-weight:800;color:#1E4FA3}
 .drv .logo .meta{display:none}.drv header button{font-size:20px;width:auto;padding:8px 14px;margin:0}
 .drv .msg{font-size:22px}.big2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media print{header,.noprint{display:none!important}body{background:#fff}.card{box-shadow:none}}
+#printArea{display:none}
+.pslip{font-family:Arial,sans-serif;color:#000;page-break-after:always;break-after:page}.pslip:last-child{page-break-after:auto;break-after:auto}
+.pslip .ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1E4FA3;margin-bottom:6px}.pslip .ph b{font-style:italic;font-size:15pt;color:#0B1F45}.pslip .ph span{font-size:18pt;font-weight:900;letter-spacing:1px}
+.pslip table{width:100%;border-collapse:collapse;margin-bottom:5px}.pslip td,.pslip th{border:1px solid #000;padding:3px 5px;font-size:9.5pt;vertical-align:top;text-align:left;background:none}.pslip th{font-weight:700;font-size:8.5pt}.pslip .num{width:52px;text-align:center}.pslip .num big{font-size:20pt}.pslip .tx{height:34px}.pslip .val{font-size:11pt;font-weight:700;height:20px}
+.pslip .pr{color:#c00;font-weight:700;font-size:10pt;margin-top:6px}.pslip .pp img{height:120px;margin:3px;border:1px solid #999}.pslip .nb{height:40px}
+@page{size:A4;margin:10mm}
+@media print{body.printing #app,body.printing #toast,body.printing #nbanner,body.printing #sndb{display:none!important}body.printing #printArea{display:block}header,.noprint{display:none!important}body{background:#fff}.card{box-shadow:none}}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}@media(max-width:600px){header{padding:8px 12px;gap:8px}header::before{width:110px}.logo .meta,.logo .sec{display:none}.logo .c{font-size:21px}.logo{flex:1 1 100%}.who{font-size:18px;margin-right:auto}header button{padding:6px 10px}}
 </style></head><body><div id="app"></div>
 <script>
-const RULES=['Pri nákupe alebo predaji treba skontrolovať údaje na VL','Pri predaji FK sa treba vážiť prázdny aj plný!!!','Pri neopakovanom dovoze sa treba o vykládke poradiť!!!','Po príchode zo zvozu treba úvodnú váhu robiť komplet!!!'];
+const RULES=['Pri nákupe alebo predaji treba skontrolovať údaje na VL','Pri predaji FK sa treba vážiť prázdny aj plný!!!','Pri neopakovanom dovoze sa treba o vykládke poradiť!!!','Po príchode zo zvozu treba úvodnú váhu robiť komplet!!!','Nezabudni dopísať čísla kontajnerov!!!'];
 const ST={nova:'Nová',prebieha:'Prebieha',hotovo:'Hotovo'};
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const now=()=>new Date().toTimeString().slice(0,5);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const SB_URL='https://yrrjufilzsepoqoitwed.supabase.co',SB_KEY='sb_publishable_IlXIXhi7tw-2FcN8eQQCjA_2BlV1pOS';
 const sb=supabase.createClient(SB_URL,SB_KEY);
-const DEMO=[{name:'Radko Krupička',email:'radko.krupicka@pal-kov.local',pw:'dispecer',role:'Dispečer'},{name:'Vlado Češko',email:'vlado.cesko@pal-kov.local',pw:'vodic',role:'Vodič NR-123AB'},{name:'Daniel Gago',email:'daniel.gago@pal-kov.local',pw:'vodic',role:'Vodič NR-456CD'},{name:'Ivan Zigo',email:'ivan.zigo@pal-kov.local',pw:'vodic',role:'Vodič TO-789EF'}];
+const DEMO=[{name:'Radko Krupička',email:'radko.krupicka@pal-kov.local',pw:'dispecer',role:'Dispečer'},{name:'Vlado Češko',email:'vlado.cesko@pal-kov.local',pw:'vodic',role:'Vodič'},{name:'Daniel Gago',email:'daniel.gago@pal-kov.local',pw:'vodic',role:'Vodič'},{name:'Ivan Zigo',email:'ivan.zigo@pal-kov.local',pw:'vodic',role:'Vodič'}];
 let db={users:[],lists:[],pos:{}};
 let S=JSON.parse(sessionStorage.getItem('aha_s')||'{}');S.view=S.view||'login';
 const go=v=>{S.view=v;sessionStorage.setItem('aha_s',JSON.stringify(S));render()};
@@ -65,23 +71,24 @@ const hm=ts=>ts?new Date(ts).toTimeString().slice(0,5):'';
 const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 function toast(m,err){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:12px 18px;border-radius:10px;color:#fff;font-weight:700;z-index:9999;font-size:18px';document.body.appendChild(t)}t.style.background=err?'#B71C1C':'#1E4FA3';t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3000)}
 const chk=r=>{if(r&&r.error){console.error(r.error);toast('Chyba: '+r.error.message,1)}return r};
-function render(){document.body.className=S.view==='vodic'?'drv':'';({login:vLogin,dispecer:vDisp,vodic:vDrv,report:vRep,loading:()=>{app.innerHTML=`<header>${logo('…')}</header><div class="wrap"><div class="card"><h2>Načítavam…</h2></div></div>`}})[S.view]()}
+function render(){document.body.classList.toggle('drv',S.view==='vodic');({login:vLogin,dispecer:vDisp,vodic:vDrv,report:vRep,archiv:vArch,drivers:vDrivers,loading:()=>{app.innerHTML=`<header>${logo('…')}</header><div class="wrap"><div class="card"><h2>Načítavam…</h2></div></div>`}})[S.view]()}
 let pend=false;function safeRender(){const a=document.activeElement;if(a&&app.contains(a)&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=='file'){if(!pend){pend=true;a.addEventListener('blur',()=>{pend=false;setTimeout(render,50)},{once:true})}return}render()}
-async function load(){const d=S.view==='vodic'?today():(S.date||today());
- const [u,s,p]=await Promise.all([sb.from('users').select('*'),sb.from('slips').select('*,tasks(*,messages(*))').eq('date',d),sb.from('positions').select('*')]);
+async function load(force){if(S.view==='archiv')return loadArch();const d=S.view==='vodic'?(S.ddate||today()):(S.date||today());
+ const [u,s,p,z]=await Promise.all([sb.from('users').select('*'),sb.from('slips').select('*,tasks(*,messages(*))').eq('date',d),sb.from('positions').select('*'),sb.from('slips').select('spz').neq('spz','').order('id',{ascending:false}).limit(500)]);
+ db.spzs=[...new Set((z.data||[]).map(x=>x.spz.trim().toUpperCase()))];
  if(chk(u).error||chk(s).error)return;
  db.users=u.data.map(x=>({id:x.id,name:x.name,role:x.role,spz:x.spz})).sort((a,b)=>a.role.localeCompare(b.role)||a.name.localeCompare(b.name));
  db.lists=s.data.sort((a,b)=>a.id-b.id).map(l=>({id:String(l.id),date:l.date,driverId:l.driver_id,spz:l.spz||'',note:l.note||'',tasks:l.tasks.sort((a,b)=>a.ord-b.ord).map(t=>({id:t.id,ord:t.ord,text:t.text||'',weight:t.weight||'',saleNote:t.sale_note||'',placed:t.placed||'',removed:t.removed||'',from:t.time_from||'',to:t.time_to||'',status:t.status,msgs:t.messages.sort((a,b)=>a.id-b.id).map(m=>({who:m.author_id,t:hm(m.created_at),text:m.text,photo:m.photo_url,audio:m.audio_url,gps:m.lat!=null?{lat:m.lat,lng:m.lng}:null}))}))}));
  db.pos={};(p.data||[]).forEach(x=>db.pos[x.driver_id]={lat:x.lat,lng:x.lng,t:hm(x.ts)});
- if(S.view!=='login'&&S.view!=='loading')safeRender()}
+ if(S.view!=='login'&&S.view!=='loading')(force?render:safeRender)()}
 let ch,tm;const sched=()=>{clearTimeout(tm);tm=setTimeout(load,250)};
-function subscribe(){if(ch)return;ch=sb.channel('aha-all');['slips','tasks','messages','positions'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},sched));ch.subscribe(st=>{S.rt=st;if(st==='SUBSCRIBED')sched()})}
-async function afterLogin(uid,view){S.uid=uid;S.view='loading';render();await sb.rpc('seed_demo',{d:today()});await load();const u=user(uid);subscribe();go(view&&view!=='login'&&view!=='loading'?(u.role==='vodic'?'vodic':view):(u.role==='dispecer'?'dispecer':'vodic'))}
+function subscribe(){if(ch)return;ch=sb.channel('aha-all');['slips','tasks','messages','positions'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'public',table:t},p=>{onEvent(t,p);sched()}));ch.subscribe(st=>{S.rt=st;if(st==='SUBSCRIBED')sched()})}
+async function afterLogin(uid,view){S.uid=uid;S.view='loading';render();await load();const u=user(uid);subscribe();go(view&&view!=='login'&&view!=='loading'?(u.role==='vodic'?'vodic':view):(u.role==='dispecer'?'dispecer':'vodic'))}
 async function logout(){if(ch){sb.removeChannel(ch);ch=null}await sb.auth.signOut();S.uid=null;go('login')}
-function logo(sec){return`<div class="logo"><div class="c">PAL-KOV &amp; A.H.METAL</div><div class="meta"><b>Since 1994</b><br>www.kovosrotdca.sk</div><span class="sec">${sec}</span></div>`}
-function hdr(extra=''){const u=user(S.uid);return`<header>${logo(S.view==='vodic'?'Vodič':S.view==='report'?'Prehľad':'Dispečing')}${extra}<span class="who">${esc(u.name)}</span><button onclick="logout()">Odhlásiť</button></header>`}
+function logo(sec){return`<div class="logo"><img class="lg" src="logo.svg" alt=""><div class="c">PAL-KOV &amp; A.H.METAL</div><div class="meta"><b>Since 1994</b><br>www.kovosrotdca.sk</div><span class="sec">${sec}</span></div>`}
+function hdr(extra=''){const u=user(S.uid);return`<header>${logo({vodic:'Vodič',report:'Prehľad',archiv:'Archív',drivers:'Šoféri'}[S.view]||'Dispečing')}${extra}<span class="who">${esc(u.name)}</span><button onclick="logout()">Odhlásiť</button></header>${sndBtn()}`}
 async function doLogin(e){e.preventDefault();const n=norm(ln.value);const d=DEMO.find(d=>norm(d.name)===n||norm(d.name.split(' ')[0])===n);
- const email=d?d.email:n.replace(/\s+/g,'.')+'@pal-kov.local';lerr.textContent='Prihlasujem…';
+ const email=d?d.email:slug(ln.value)+'@pal-kov.local';lerr.textContent='Prihlasujem…';
  const {data,error}=await sb.auth.signInWithPassword({email,password:lp.value+'-pk'});
  if(error){lerr.textContent='Nesprávne meno alebo heslo.';return}afterLogin(data.user.id)}
 function vLogin(){app.innerHTML=`<header>${logo('Prihlásenie')}</header><div class="login card"><h2>Prihlásenie</h2>
@@ -93,11 +100,11 @@ function vLogin(){app.innerHTML=`<header>${logo('Prihlásenie')}</header><div cl
 // ---------- DISPEČER
 function vDisp(){if(!S.date)S.date=today();const ls=db.lists.filter(l=>l.date===S.date);if(!ls.find(l=>l.id===S.sel))S.sel=ls[0]?.id;
  const L=db.lists.find(l=>l.id===S.sel);
- app.innerHTML=hdr(`<button onclick="go('report')">Prehľad / export</button>`)+`<div class="wrap grid"><div><div class="card"><div class="row"><input type="date" value="${S.date}" onchange="S.date=this.value;load()" style="width:auto"><button class="pri" onclick="newList()">+ Nový lístok</button></div><h3>Lístky (${ls.length}) <small title="Realtime" style="color:${S.rt==='SUBSCRIBED'?'#2e7d32':'#999'}">● live</small></h3>${ls.map(l=>{const d=l.tasks.filter(t=>t.status==='hotovo').length;return`<div class="lst ${l.id===S.sel?'sel':''}" onclick="S.sel='${l.id}';render()"><b>${esc(user(l.driverId).name)}</b> · ${esc(l.spz)}<br><small>${d}/${l.tasks.length} hotových</small> ${l.tasks.map(t=>`<span class="badge s-${t.status}">${ST[t.status][0]}</span>`).join(' ')}</div>`}).join('')||'<i>Žiadne lístky</i>'}</div><div class="card"><h3>Poloha vodičov</h3><div id="map"></div><small>${db.users.filter(u=>u.role==='vodic').map(u=>`${esc(u.name)}: ${db.pos[u.id]?db.pos[u.id].t:'–'}`).join(' · ')}</small></div></div><div>${L?paper(L):'<div class="card">Vyberte alebo vytvorte lístok.</div>'}</div></div>`;
+ app.innerHTML=hdr(`<button onclick="go('report')">Denný prehľad</button><button onclick="go('archiv');load()">Archív / export</button><button onclick="go('drivers')">Šoféri</button>`)+`<div class="wrap grid"><div><div class="card"><div class="row"><button onclick="shiftDay(-1)">◀</button><input id="dday" type="date" value="${S.date}" onchange="S.date=this.value;load(1)" style="width:auto"><button onclick="shiftDay(1)">▶</button><button onclick="S.date=today();load(1)">Dnes</button></div><div class="row" style="margin-top:8px"><button class="pri" onclick="newList()">+ Nový lístok na ${fmtD(S.date)}</button></div><div class="row noprint" style="margin-top:8px"><button onclick="printSlips(db.lists.filter(l=>l.date===S.date).map(l=>l.id))">🖨 Tlačiť všetky lístky dňa</button><label class="row" style="gap:4px"><input type="checkbox" style="width:auto" ${S.pph?'checked':''} onchange="S.pph=this.checked"> s fotkami</label></div><h3>Lístky (${ls.length}) <small title="Realtime" style="color:${S.rt==='SUBSCRIBED'?'#2e7d32':'#999'}">● live</small></h3>${ls.map(l=>{const d=l.tasks.filter(t=>t.status==='hotovo').length;return`<div class="lst ${l.id===S.sel?'sel':''}" onclick="S.sel='${l.id}';render()"><b>${esc(user(l.driverId).name)}</b> · ${esc(l.spz)}<br><small>${d}/${l.tasks.length} hotových</small> ${l.tasks.map(t=>`<span class="badge s-${t.status}">${ST[t.status][0]}</span>`).join(' ')}</div>`}).join('')||'<i>Žiadne lístky</i>'}</div><div class="card"><h3>Poloha vodičov</h3><div id="map"></div><small>${db.users.filter(u=>u.role==='vodic').map(u=>`${esc(u.name)}: ${db.pos[u.id]?db.pos[u.id].t:'–'}`).join(' · ')}</small></div></div><div>${L?paper(L):'<div class="card">Vyberte alebo vytvorte lístok.</div>'}</div></div>`;
  initMap();}
 function paper(L){const drv=db.users.filter(u=>u.role==='vodic');
- return`<div class="card paper"><div class="row" style="justify-content:space-between"><h2 style="margin:0">ZADÁVACÍ LÍSTOK</h2><div class="row noprint"><button onclick="window.print()">Tlačiť</button><button onclick="delList('${L.id}')">Zmazať</button></div></div>
- <table style="margin:10px 0"><tr><th>Dátum</th><td><input type="date" value="${L.date}" onchange="upd('${L.id}','date',this.value)"></td><th>ŠPZ</th><td><input value="${esc(L.spz)}" onchange="upd('${L.id}','spz',this.value)"></td><th>Meno vodiča</th><td><select onchange="upd('${L.id}','driverId',this.value)">${drv.map(u=>`<option value="${u.id}" ${u.id===L.driverId?'selected':''}>${esc(u.name)}</option>`).join('')}</select></td></tr></table>
+ return`<div class="card paper"><div class="row" style="justify-content:space-between"><h2 style="margin:0">ZADÁVACÍ LÍSTOK</h2><div class="row noprint"><button onclick="printSlips(['${L.id}'])">🖨 Tlačiť lístok</button><button onclick="delList('${L.id}')">Zmazať</button></div></div>
+ <table style="margin:10px 0"><tr><th>Dátum</th><td><input type="date" value="${L.date}" onchange="upd('${L.id}','date',this.value)"></td><th>ŠPZ</th><td><input list="spzl" placeholder="ŠPZ vozidla" value="${esc(L.spz)}" onchange="upd('${L.id}','spz',this.value.toUpperCase())"><datalist id="spzl">${(db.spzs||[]).map(z=>`<option value="${esc(z)}">`).join('')}</datalist></td><th>Meno vodiča</th><td><select onchange="upd('${L.id}','driverId',this.value)">${drv.map(u=>`<option value="${u.id}" ${u.id===L.driverId?'selected':''}>${esc(u.name)}</option>`).join('')}</select></td></tr></table>
  ${L.tasks.map((t,i)=>task(L,t,i)).join('')}
  ${L.tasks.length<5?`<button class="noprint" onclick="addTask('${L.id}')">+ Pridať úlohu (${L.tasks.length}/5)</button>`:''}
  <p><b>Poznámky:</b><textarea rows="2" onchange="upd('${L.id}','note',this.value)">${esc(L.note)}</textarea></p>
@@ -111,25 +118,25 @@ function task(L,t,i){const f=(k,ph='')=>`<input value="${esc(t[k])}" placeholder
 function chat(t){return`<div class="chat">${t.msgs.map(m=>`<div class="msg ${user(m.who).role==='dispecer'?'d':''}"><small>${esc(user(m.who).name)} · ${m.t}</small><br>${esc(m.text||'')}${m.photo?`<img src="${m.photo}">`:''}${m.audio?`<audio controls src="${m.audio}"></audio>`:''}${m.gps?`<a target="_blank" href="https://www.openstreetmap.org/?mlat=${m.gps.lat}&mlon=${m.gps.lng}#map=16/${m.gps.lat}/${m.gps.lng}">📍 poloha</a>`:''}</div>`).join('')||'<small>Zatiaľ bez správ</small>'}</div>`}
 const getL=id=>db.lists.find(l=>l.id===id);
 const TCOL={text:'text',weight:'weight',saleNote:'sale_note',placed:'placed',removed:'removed',from:'time_from',to:'time_to',status:'status'};
-async function upd(id,k,v){const L=getL(id);const o={};if(k==='driverId'){o.driver_id=v;const u=user(v);if(u.spz)o.spz=u.spz}else o[k]=v;L[k]=v;
+async function upd(id,k,v){const L=getL(id);const o={};if(k==='driverId')o.driver_id=v;else o[k]=v;L[k]=v;
  chk(await sb.from('slips').update(o).eq('id',id));if(k==='date')S.date=v;load()}
 async function updT(id,i,k,v){const t=getL(id).tasks[i];t[k]=v;safeRender();chk(await sb.from('tasks').update({[TCOL[k]]:v,updated_at:new Date().toISOString()}).eq('id',t.id))}
 async function setT(id,i,o){const t=getL(id).tasks[i];const r={updated_at:new Date().toISOString()};for(const k in o){t[k]=o[k];r[TCOL[k]]=o[k]}render();chk(await sb.from('tasks').update(r).eq('id',t.id))}
 async function addTask(id){const L=getL(id);chk(await sb.from('tasks').insert({slip_id:+id,ord:L.tasks.length+1}));load()}
-async function newList(){const v=db.users.find(u=>u.role==='vodic');const r=chk(await sb.from('slips').insert({date:S.date,driver_id:v.id,spz:v.spz||''}).select().single());if(r.error)return;S.sel=String(r.data.id);chk(await sb.from('tasks').insert({slip_id:r.data.id,ord:1}));load()}
+async function newList(){const v=db.users.find(u=>u.role==='vodic');const r=chk(await sb.from('slips').insert({date:S.date,driver_id:v.id,spz:''}).select().single());if(r.error)return;S.sel=String(r.data.id);chk(await sb.from('tasks').insert({slip_id:r.data.id,ord:1}));load()}
 async function delList(id){if(confirm('Zmazať lístok?')){chk(await sb.from('slips').delete().eq('id',id));load()}}
 async function send(id,i,text,extra={}){if(!text&&!Object.keys(extra).length)return;const t=getL(id).tasks[i];
  chk(await sb.from('messages').insert({task_id:t.id,text:text||'',photo_url:extra.photo||null,audio_url:extra.audio||null,lat:extra.gps?.lat??null,lng:extra.gps?.lng??null}));load()}
 async function upload(blob,ext){const path=`${S.uid}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
  const r=chk(await sb.storage.from('media').upload(path,blob,{contentType:blob.type}));if(r.error)return null;return sb.storage.from('media').getPublicUrl(path).data.publicUrl}
 function photo(inp,id,i){const f=inp.files[0];if(!f)return;toast('Nahrávam fotku…');const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const c=document.createElement('canvas'),s=Math.min(1,1280/img.width);c.width=img.width*s;c.height=img.height*s;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(async b=>{const u=await upload(b,'jpg');if(u){await send(id,i,'Fotka',{photo:u});toast('Fotka odoslaná')}},'image/jpeg',.75)};img.src=r.result};r.readAsDataURL(f)}
-let map;function initMap(){if(map){map.remove();map=null}const el=document.getElementById('map');if(!el)return;if(!window.L){el.innerHTML='<div style="padding:20px">Mapa (offline – Leaflet nedostupný)</div>';return}
- map=L.map(el).setView([48.35,18.3],9);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
- const pts=Object.values(db.pos).map(p=>[p.lat,p.lng]);if(pts.length)map.fitBounds(pts,{padding:[40,40],maxZoom:12});Object.entries(db.pos).forEach(([id,p])=>{const l=db.lists.find(x=>x.driverId===id&&x.date===S.date);L.marker([p.lat,p.lng]).addTo(map).bindTooltip(`${user(id).name} (${l?l.spz:''}) ${p.t}`,{permanent:true})})}
+let map;function initMap(){if(map){try{map.off();map.remove()}catch(e){}map=null}const el=document.getElementById('map');if(!el)return;if(!window.L){el.innerHTML='<div style="padding:20px">Mapa (offline – Leaflet nedostupný)</div>';return}
+ map=L.map(el,{zoomAnimation:false,fadeAnimation:false,markerZoomAnimation:false}).setView([48.35,18.3],9);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+ const pts=Object.values(db.pos).map(p=>[p.lat,p.lng]);if(pts.length)map.fitBounds(pts,{padding:[40,40],maxZoom:12});Object.entries(db.pos).forEach(([id,p])=>{const l=db.lists.find(x=>x.driverId===id&&x.date===S.date);L.marker([p.lat,p.lng]).addTo(map).bindTooltip(`${user(id).name}${l&&l.spz?' ('+l.spz+')':''} ${p.t}`,{permanent:true})})}
 // ---------- VODIČ
-function vDrv(){const L=db.lists.filter(l=>l.driverId===S.uid&&l.date===today())[0];
- app.innerHTML=hdr()+`<div class="wrap">${!L?'<div class="card"><h2>Na dnes nemáte lístok.</h2></div>':`
- <div class="card"><h2>Dnešný lístok</h2><div>${new Date().toLocaleDateString('sk-SK')} · <b>${esc(L.spz)}</b></div>${L.note?`<p>📝 ${esc(L.note)}</p>`:''}<button onclick="gps('${L.id}')">📍 Zdieľať polohu</button></div>
+function vDrv(){const dd=S.ddate||today(),isT=dd===today();const L=db.lists.filter(l=>l.driverId===S.uid&&l.date===dd)[0];
+ app.innerHTML=hdr()+`<div class="wrap"><div class="big2"><button onclick="S.ddate=addDays(S.ddate||today(),-1);load(1)">◀ Deň</button><button onclick="S.ddate=addDays(S.ddate||today(),1);load(1)">Deň ▶</button></div>${isT?'':`<button class="pri" onclick="S.ddate=today();load(1)">Späť na dnes</button>`}${!L?`<div class="card"><h2>${isT?'Na dnes nemáte lístok.':'Na '+fmtD(dd)+' nemáte lístok.'}</h2></div>`:`
+ <div class="card"><h2>${isT?'Dnešný lístok':'Lístok na '+fmtD(dd)}</h2><div>${fmtD(dd)} · <b>${esc(L.spz||'ŠPZ nezadaná')}</b></div>${L.note?`<p>📝 ${esc(L.note)}</p>`:''}<button onclick="gps('${L.id}')">📍 Zdieľať polohu</button></div>
  <div class="rules card">⚠️ ${RULES.join('<br>⚠️ ')}</div>
  ${L.tasks.map((t,i)=>dTask(L,t,i)).join('')}`}</div>`}
 function dTask(L,t,i){const inp=(k,lbl,m='text')=>`<label>${lbl}</label><input inputmode="${m}" value="${esc(t[k])}" onchange="updT('${L.id}',${i},'${k}',this.value)">`;
@@ -154,12 +161,86 @@ function vRep(){if(!S.date)S.date=today();const ls=db.lists.filter(l=>l.date===S
   const fr=t.map(x=>x.from).filter(Boolean).sort()[0]||'',to=t.map(x=>x.to).filter(Boolean).sort().pop()||'';
   return{v:user(l.driverId).name,spz:l.spz,n:t.length,d:d.length,p:t.filter(x=>x.status==='prebieha').length,w,cont:t.map(x=>[x.placed&&'+'+x.placed,x.removed&&'−'+x.removed].filter(Boolean).join(' ')).filter(Boolean).join(', '),fr,to}});
  S.rows=rows;
- app.innerHTML=hdr(`<button onclick="go('dispecer')">← Dispečing</button>`)+`<div class="wrap"><div class="card"><div class="row noprint"><input type="date" value="${S.date}" onchange="S.date=this.value;load()" style="width:auto"><button class="pri" onclick="csv()">Export CSV</button><button onclick="window.print()">Tlačiť / PDF</button></div>
+ app.innerHTML=hdr(`<button onclick="go('dispecer')">← Dispečing</button>`)+`<div class="wrap"><div class="card"><div class="row noprint"><input type="date" value="${S.date}" onchange="S.date=this.value;load(1)" style="width:auto"><button class="pri" onclick="csv()">Export CSV</button><button onclick="window.print()">Tlačiť / PDF</button></div>
  <h2>Denný prehľad – ${new Date(S.date).toLocaleDateString('sk-SK')}</h2><table><tr><th>Vodič</th><th>ŠPZ</th><th>Úloh</th><th>Hotovo</th><th>Prebieha</th><th>Nakúpená hmotnosť (kg)</th><th>Kontajnery (+pristav. / −odvez.)</th><th>Od</th><th>Do</th></tr>
  ${rows.map(r=>`<tr><td>${esc(r.v)}</td><td>${esc(r.spz)}</td><td>${r.n}</td><td>${r.d}</td><td>${r.p}</td><td>${r.w||''}</td><td>${esc(r.cont)}</td><td>${r.fr}</td><td>${r.to}</td></tr>`).join('')}
  <tr><th colspan="2">Spolu</th><th>${rows.reduce((a,r)=>a+r.n,0)}</th><th>${rows.reduce((a,r)=>a+r.d,0)}</th><th>${rows.reduce((a,r)=>a+r.p,0)}</th><th>${rows.reduce((a,r)=>a+r.w,0)||''}</th><th colspan="3"></th></tr></table></div></div>`}
 function csv(){const h=['Dátum','Vodič','ŠPZ','Úloh','Hotovo','Prebieha','Hmotnosť kg','Kontajnery','Od','Do'];
  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';const s='\ufeff'+[h,...S.rows.map(r=>[S.date,r.v,r.spz,r.n,r.d,r.p,r.w,r.cont,r.fr,r.to])].map(r=>r.map(q).join(';')).join('\r\n');
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/csv'}));a.download='prehlad-'+S.date+'.csv';a.click()}
+// ---------- pomocné
+const slug=n=>norm(n).replace(/[^a-z0-9]+/g,'.').replace(/^\.|\.$/g,'');
+const fmtD=d=>d?d.split('-').reverse().join('.'):'';
+const addDays=(d,n)=>{const x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+function shiftDay(n){S.date=addDays(S.date||today(),n);load(1)}
+const first=n=>String(n||'').split(' ')[0];
+// ---------- notifikácie (zvuk + hlas + banner + Notification API)
+const NT={on:false};window.__notifs=[];
+function unlockAudio(){if(NT.on)return;try{NT.ac=new(window.AudioContext||window.webkitAudioContext)();NT.ac.resume()}catch(e){}
+ try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}NT.on=true;
+ try{if('Notification'in window&&Notification.permission==='default')Notification.requestPermission()}catch(e){}
+ const b=document.getElementById('sndb');if(b)b.remove()}
+document.addEventListener('pointerdown',unlockAudio,true);document.addEventListener('keydown',unlockAudio,true);
+function sndBtn(){return NT.on?'':`<div id="sndb" onclick="unlockAudio();toast('Zvukové upozornenia zapnuté')" style="background:#FFF4CC;border-bottom:2px solid #E0B400;padding:10px 16px;font-weight:700;cursor:pointer;text-align:center">🔊 Ťuknite sem pre zapnutie zvukových upozornení</div>`}
+function beep(){if(!NT.ac)return;try{const a=NT.ac,o=a.createOscillator(),g=a.createGain(),t=a.currentTime;o.connect(g);g.connect(a.destination);o.frequency.setValueAtTime(880,t);o.frequency.setValueAtTime(1320,t+.18);g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);o.start(t);o.stop(t+.5)}catch(e){}}
+function speak(t){try{if(!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang='sk-SK';const v=speechSynthesis.getVoices().find(v=>/^sk/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^cs/i.test(v.lang));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function banner(t){let b=document.getElementById('nbanner');if(!b){b=document.createElement('div');b.id='nbanner';b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:10000;background:#1E90E0;color:#fff;font-weight:800;font-size:22px;padding:16px;text-align:center;box-shadow:0 2px 8px #0005;cursor:pointer';b.onclick=()=>b.style.display='none';document.body.appendChild(b)}b.textContent='🔔 '+t;b.style.display='block';clearTimeout(b._h);b._h=setTimeout(()=>b.style.display='none',8000)}
+function notify(title,text){window.__notifs.push(text);beep();setTimeout(()=>speak(text),550);banner(text);
+ try{if('Notification'in window&&Notification.permission==='granted'&&(document.hidden||!document.hasFocus()))new Notification(title,{body:text,icon:'icon.svg',tag:'aha'})}catch(e){}}
+function onEvent(t,p){const me=user(S.uid),n=p.new||{},o=p.old||{};
+ if(t==='messages'&&p.eventType==='INSERT'&&n.author_id&&n.author_id!==S.uid)notify('Nová správa','Nová správa od '+first(user(n.author_id).name));
+ if(me.role==='vodic'){
+  if(t==='tasks'&&p.eventType==='INSERT')notify('Nová úloha','Pribudla nová úloha na váš lístok');
+  if(t==='slips'&&n.driver_id===S.uid&&(p.eventType==='INSERT'||(p.eventType==='UPDATE'&&o.driver_id!==S.uid)))notify('Nový lístok','Máte nový zadávací lístok na '+fmtD(n.date));}}
+// ---------- tlač lístkov (formulár ako papier)
+function printHTML(html){let p=document.getElementById('printArea');if(!p){p=document.createElement('div');p.id='printArea';document.body.appendChild(p)}p.innerHTML=html;document.body.classList.add('printing');
+ const imgs=[...p.querySelectorAll('img')];Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>{if(!window.__noPrint)window.print()})}
+window.addEventListener('afterprint',()=>document.body.classList.remove('printing'));
+function slipPrint(L,ph){const T=[...Array(5)].map((_,i)=>L.tasks[i]||{text:'',weight:'',saleNote:'',placed:'',removed:'',from:'',to:'',msgs:[]});
+ return`<div class="pslip"><div class="ph"><b><img src="logo.svg" style="height:34px;vertical-align:middle;margin-right:6px">PAL-KOV &amp; A.H.METAL</b><span>ZADÁVACÍ LÍSTOK</span></div>
+ <table><tr><th style="width:12%">Dátum</th><td class="val">${fmtD(L.date)}</td><th style="width:8%">ŠPZ</th><td class="val">${esc(L.spz)}</td><th style="width:14%">Meno vodiča</th><td class="val">${esc(user(L.driverId).name)}</td></tr></table>
+ ${T.map((t,i)=>`<table style="table-layout:fixed"><colgroup><col style="width:7%"><col style="width:20%"><col style="width:27%"><col style="width:11.5%"><col style="width:11.5%"><col style="width:11.5%"><col style="width:11.5%"></colgroup><tr><th rowspan="4" class="num">Č. úlohy<br><big>${i+1}</big></th><th colspan="2">Text pre zadanie úlohy</th><th colspan="2">Údaje o kontajneri</th><th colspan="2">Vykonaná</th></tr>
+ <tr><td colspan="2" rowspan="2" class="tx">${esc(t.text)}</td><th>Číslo pristav.</th><th>Číslo odvez.</th><th>v čase od</th><th>v čase do</th></tr>
+ <tr><td class="val">${esc(t.placed)}</td><td class="val">${esc(t.removed)}</td><td class="val">${esc(t.from)}</td><td class="val">${esc(t.to)}</td></tr>
+ <tr><th>Údaje o tovare</th><td><small>Nakúpená hmotnosť:</small> <b>${esc(t.weight)}</b></td><td colspan="4"><small>Poznámky o predaji:</small> ${esc(t.saleNote)}</td></tr>
+ ${ph&&t.msgs.some(m=>m.photo)?`<tr><td colspan="7" class="pp">${t.msgs.filter(m=>m.photo).map(m=>`<img src="${m.photo}">`).join('')}</td></tr>`:''}</table>`).join('')}
+ <table><tr><th style="width:12%">Poznámky</th><td class="nb">${esc(L.note)}</td></tr></table>
+ <div class="pr">${RULES.map(r=>`<div>${r}</div>`).join('')}</div></div>`}
+function printSlips(ids){const ls=ids.map(getL).filter(Boolean);if(!ls.length)return toast('Žiadne lístky na tlač',1);printHTML(ls.map(l=>slipPrint(l,S.pph)).join(''))}
+// ---------- šoféri (admin)
+async function adm(body){const r=await sb.functions.invoke('admin-users',{body});if(r.error){let m=r.error.message;try{m=(await r.error.context.json()).error||m}catch(e){}toast('Chyba: '+m,1);return null}return r.data}
+function vDrivers(){const dr=db.users.filter(u=>u.role==='vodic');
+ app.innerHTML=hdr(`<button onclick="go('dispecer')">← Dispečing</button>`)+`<div class="wrap"><div class="card" style="max-width:620px"><h2>Pridať šoféra</h2>
+ <div class="row"><input id="nn" placeholder="Meno a priezvisko" style="flex:2"><input id="np" placeholder="Heslo" style="flex:1"><button class="pri" onclick="addDrv()">+ Pridať šoféra</button></div>
+ <p><small>Šofér sa prihlasuje menom a heslom. ŠPZ sa zadáva pri každom lístku (vozidlá sa menia).</small></p></div>
+ <div class="card" style="max-width:620px"><h2>Šoféri (${dr.length})</h2><table><tr><th>Meno</th><th>Akcie</th></tr>${dr.map(u=>`<tr><td><b>${esc(u.name)}</b></td><td><button onclick="pwDrv('${u.id}')">Zmeniť heslo</button> <button onclick="renDrv('${u.id}')">Premenovať</button></td></tr>`).join('')}</table></div></div>`}
+async function addDrv(){const n=nn.value.trim(),pw=np.value;if(!n||pw.length<3)return toast('Zadajte meno a heslo (min. 3 znaky)',1);const r=await adm({action:'create',name:n,password:pw});if(r){toast('Šofér pridaný: '+n);await load()}}
+async function pwDrv(id){const pw=prompt('Nové heslo pre '+user(id).name+':');if(!pw)return;if(await adm({action:'update',id,password:pw}))toast('Heslo zmenené')}
+async function renDrv(id){const n=prompt('Nové meno:',user(id).name);if(!n||n===user(id).name)return;if(await adm({action:'update',id,name:n})){toast('Premenované');load()}}
+// ---------- archív + export po vodičoch + retencia
+let arch=[],ret={db_months:24,media_months:12,auto_delete:false};
+async function loadArch(){if(!S.af){S.af=addDays(today(),-30);S.at=today()}
+ let q=sb.from('slips').select('*,tasks(*,messages(*))').gte('date',S.af).lte('date',S.at).order('date');if(S.adrv)q=q.eq('driver_id',S.adrv);
+ const [r,u,st]=await Promise.all([q,sb.from('users').select('*'),sb.from('settings').select('*').eq('key','retention').maybeSingle()]);if(chk(r).error)return;
+ db.users=u.data.map(x=>({id:x.id,name:x.name,role:x.role}));if(st.data)ret=st.data.value;
+ arch=r.data.map(l=>({id:String(l.id),date:l.date,driverId:l.driver_id,spz:l.spz||'',note:l.note||'',tasks:l.tasks.sort((a,b)=>a.ord-b.ord).map(t=>({ord:t.ord,text:t.text||'',weight:t.weight||'',saleNote:t.sale_note||'',placed:t.placed||'',removed:t.removed||'',from:t.time_from||'',to:t.time_to||'',status:t.status,msgs:t.messages.map(m=>({who:m.author_id,photo:m.photo_url,audio:m.audio_url,text:m.text}))}))}));safeRender()}
+const byDrv=()=>{const g={};arch.forEach(l=>(g[l.driverId]=g[l.driverId]||[]).push(l));return g};
+const archRows=ls=>ls.flatMap(l=>l.tasks.map(t=>[fmtD(l.date),user(l.driverId).name,l.spz,t.ord,t.text,t.weight,t.saleNote,t.placed,t.removed,t.from,t.to,ST[t.status],t.msgs.filter(m=>m.photo).length]));
+const AH=['Dátum','Vodič','ŠPZ','Č. úlohy','Text úlohy','Nakúpená hmotnosť','Poznámky o predaji','Číslo pristav.','Číslo odvez.','Od','Do','Stav','Fotky'];
+function vArch(){const g=byDrv(),dr=db.users.filter(u=>u.role==='vodic');
+ app.innerHTML=hdr(`<button onclick="go('dispecer');load()">← Dispečing</button>`)+`<div class="wrap"><div class="card"><h2>Archív</h2><div class="row"><label>Od <input type="date" id="af" value="${S.af}" style="width:auto"></label><label>Do <input type="date" id="at" value="${S.at}" style="width:auto"></label>
+ <label>Vodič <select id="adrv" style="width:auto"><option value="">Všetci</option>${dr.map(u=>`<option value="${u.id}" ${u.id===S.adrv?'selected':''}>${esc(u.name)}</option>`).join('')}</select></label><button class="pri" onclick="S.af=af.value;S.at=at.value;S.adrv=adrv.value;loadArch()">Hľadať</button></div>
+ <div class="row" style="margin-top:10px"><button onclick="archCsv()">⬇ CSV (samostatne pre každého vodiča)</button><button onclick="archPrint()">🖨 Tlač / PDF – prehľad po vodičoch</button><button onclick="S.pph=archPh.checked;printHTML(arch.map(l=>slipPrint(l,S.pph)).join(''))">🖨 Tlačiť lístky v rozsahu</button><label class="row" style="gap:4px"><input id="archPh" type="checkbox" style="width:auto" ${S.pph?'checked':''}> s fotkami</label></div>
+ <p><small>${arch.length} lístkov, ${arch.reduce((a,l)=>a+l.tasks.length,0)} úloh</small></p>
+ ${Object.entries(g).map(([id,ls])=>`<h3>${esc(user(id).name)} <small>(${ls.length} lístkov)</small></h3><table><tr>${AH.filter((_,i)=>i!==1).map(h=>`<th>${h}</th>`).join('')}</tr>${archRows(ls).map(r=>`<tr>${r.filter((_,i)=>i!==1).map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`).join('')||'<i>Nič sa nenašlo</i>'}</div>
+ <div class="card" style="max-width:640px"><h2>Uchovávanie dát (retencia)</h2><p>Odporúčanie: záznamy (lístky, úlohy, správy) uchovávať <b>24 mesiacov</b>, fotky a hlasové správy <b>12 mesiacov</b>. Automatické mazanie je predvolene <b>vypnuté</b> – nič sa nemaže.</p>
+ <div class="row"><label>Záznamy (mesiace) <input id="rdb" type="number" min="1" value="${ret.db_months}" style="width:90px"></label><label>Fotky/zvuk (mesiace) <input id="rmd" type="number" min="1" value="${ret.media_months}" style="width:90px"></label>
+ <label class="row" style="gap:4px"><input id="rad" type="checkbox" style="width:auto" ${ret.auto_delete?'checked':''}> automatické mazanie</label><button class="pri" onclick="saveRet()">Uložiť</button></div>
+ <p><small>Pozn.: v tejto verzii sa nastavenie len ukladá; automatická úloha na mazanie zatiaľ nie je spustená.</small></p></div></div>`}
+async function saveRet(){ret={db_months:+rdb.value||24,media_months:+rmd.value||12,auto_delete:rad.checked};if(!chk(await sb.from('settings').upsert({key:'retention',value:ret,updated_at:new Date().toISOString()})).error)toast('Nastavenie uložené')}
+function archCsv(){const g=byDrv();if(!Object.keys(g).length)return toast('Žiadne dáta',1);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';let k=0;
+ Object.entries(g).forEach(([id,ls])=>{const s='\ufeff'+[AH,...archRows(ls)].map(r=>r.map(q).join(';')).join('\r\n');setTimeout(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/csv'}));a.download=`${slug(user(id).name)}_${S.af}_${S.at}.csv`;a.click()},400*k++)})}
+function archPrint(){const g=byDrv();printHTML(Object.entries(g).map(([id,ls])=>`<div class="pslip"><div class="ph"><b><img src="logo.svg" style="height:34px;vertical-align:middle;margin-right:6px">PAL-KOV &amp; A.H.METAL</b><span>${esc(user(id).name)}</span></div><p>Obdobie ${fmtD(S.af)} – ${fmtD(S.at)} · ${ls.length} lístkov</p><table><tr>${AH.filter((_,i)=>i!==1).map(h=>`<th>${h}</th>`).join('')}</tr>${archRows(ls).map(r=>`<tr>${r.filter((_,i)=>i!==1).map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`).join(''))}
+
 (async()=>{const {data:{session}}=await sb.auth.getSession();if(session)afterLogin(session.user.id,S.view);else go('login')})();
 </script></body></html>
