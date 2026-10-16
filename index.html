@@ -52,10 +52,10 @@ const ST={nova:'Nová',prebieha:'Prebieha',hotovo:'Hotovo'};
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const now=()=>new Date().toTimeString().slice(0,5);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const KEY='aha_db_v1';
+const KEY='aha_db_v2';
 function emptyTask(t=''){return{text:t,weight:'',saleNote:'',placed:'',removed:'',from:'',to:'',status:'nova',msgs:[]}}
 function seed(){const d=today();
- const users=[{id:'disp1',name:'Mária Kováčová',role:'dispecer'},{id:'v1',name:'Ján Novák',role:'vodic',spz:'NR-123AB'},{id:'v2',name:'Peter Horváth',role:'vodic',spz:'NR-456CD'},{id:'v3',name:'Martin Varga',role:'vodic',spz:'TO-789EF'}];
+ const users=[{id:'disp1',name:'Radko Krupička',role:'dispecer'},{id:'v1',name:'Vlado Češko',role:'vodic',spz:'NR-123AB'},{id:'v2',name:'Daniel Gago',role:'vodic',spz:'NR-456CD'},{id:'v3',name:'Ivan Zigo',role:'vodic',spz:'TO-789EF'}];
  const T=(t,o={})=>Object.assign(emptyTask(t),o);
  const lists=[
  {id:'L1',date:d,driverId:'v1',spz:'NR-123AB',note:'Ráno najprv tankovať.',tasks:[T('Pristaviť kontajner 7 m³ – Stavebniny Šurany, Hlavná 12',{placed:'K-114',from:'06:40',to:'07:25',status:'hotovo',msgs:[{who:'v1',t:'07:24',text:'Kontajner pristavený pri bráne.'}]}),T('Odviezť plný kontajner – Kovovýroba Nitra, Priemyselná 5',{removed:'K-087',from:'07:50',status:'prebieha',msgs:[{who:'disp1',t:'07:10',text:'Volať p. Bielika 0905 000 111 pred príjazdom.'}]}),T('Výkup železa – p. Mráz, Vráble (rodinný dom)'),T('Pri predaji FK – vážiť prázdny aj plný, odvoz do huty')]},
@@ -73,7 +73,7 @@ const app=document.getElementById('app');
 function render(){document.body.className=S.view==='vodic'?'drv':'';({login:vLogin,dispecer:vDisp,vodic:vDrv,report:vRep})[S.view]()}
 function logo(sec){return`<div class="logo"><div class="c">PAL-KOV &amp; A.H.METAL</div><div class="meta"><b>Since 1994</b><br>www.kovosrotdca.sk</div><span class="sec">${sec}</span></div>`}
 function hdr(extra=''){const u=user(S.uid);return`<header>${logo(S.view==='vodic'?'Vodič':S.view==='report'?'Prehľad':'Dispečing')}${extra}<span class="who">${esc(u.name)}</span><button onclick="S.uid=null;go('login')">Odhlásiť</button></header>`}
-const PASS={disp1:'dispecer',v1:'vodic1',v2:'vodic2',v3:'vodic3'};
+const PASS={disp1:'dispecer',v1:'vodic',v2:'vodic',v3:'vodic'};
 const norm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 function doLogin(e){e.preventDefault();const n=norm(document.getElementById('ln').value),pw=document.getElementById('lp').value;
  const u=db.users.find(u=>norm(u.name)===n||norm(u.name.split(' ')[0])===n);
@@ -83,7 +83,7 @@ function vLogin(){app.innerHTML=`<header>${logo('Prihlásenie')}</header><div cl
 <form onsubmit="doLogin(event)"><label>Meno<input id="ln" autocomplete="username" style="font-size:20px;padding:10px;margin:4px 0 10px"></label>
 <label>Heslo<input id="lp" type="password" autocomplete="current-password" style="font-size:20px;padding:10px;margin:4px 0 10px"></label>
 <div id="lerr" style="color:#B71C1C;font-weight:700"></div><button class="pri" style="width:100%;font-size:20px;padding:12px">Prihlásiť</button></form>
-<h3 style="margin-top:22px">Demo prístupy</h3><table><tr><th>Meno</th><th>Heslo</th><th>Rola</th></tr>${db.users.map(u=>`<tr style="cursor:pointer" onclick="ln.value='${esc(u.name)}';lp.value='${PASS[u.id]}'"><td>${esc(u.name)}</td><td><code>${PASS[u.id]}</code></td><td>${u.role==='dispecer'?'Dispečerka':'Vodič '+u.spz}</td></tr>`).join('')}</table>
+<h3 style="margin-top:22px">Demo prístupy</h3><table><tr><th>Meno</th><th>Heslo</th><th>Rola</th></tr>${db.users.map(u=>`<tr style="cursor:pointer" onclick="ln.value='${esc(u.name)}';lp.value='${PASS[u.id]}'"><td>${esc(u.name)}</td><td><code>${PASS[u.id]}</code></td><td>${u.role==='dispecer'?'Dispečer':'Vodič '+u.spz}</td></tr>`).join('')}</table>
 <p><small>Klik na riadok vyplní údaje. Dáta sa ukladajú len v tomto zariadení (demo).</small></p>
 <p><button onclick="if(confirm('Obnoviť demo dáta?')){localStorage.removeItem(KEY);db=seed();save();render()}">Obnoviť demo dáta</button></p></div>`}
 // ---------- DISPEČER
